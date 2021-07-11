@@ -33,7 +33,7 @@ HINT: Mount your ext SD cards with the "noatime" option
 --- by Khaled at [link](https://superuser.com/questions/248078/choice-of-filesystem-for-gnu-linux-on-an-sd-card)
 
 #### use read only file system such as unionFS
-
+[How to make your Raspberry Pi file system read-only (Raspbian Stretch)](https://medium.com/@andreas.schallwig/how-to-make-your-raspberry-pi-file-system-read-only-raspbian-stretch-80c0f7be7353)
 
 #### ext2 solution
 
