@@ -51,5 +51,71 @@ There is no tune4fs on debian 10, use tune2fs insteed.
 tmpfs                   /tmp            tmpfs   mode=1777,nosuid,nodev          0       0
 tmpfs                   /root/.cache    tmpfs   mode=1777,nosuid,nodev          0       0
 ```
-  - 
+
+#### union mount filesystem
+There are btrfs, unionfs, aufs, overlayfs can do this job. By my brief understanding:
+- unionfs, original version
+- aufs, an advanced version of unionfs. It has lots of mature features rather than overlayfs.
+- overlayfs, a simple but included in kernal code tree fs.
+- btrfs, I'm not quite understanding what it is. but seems it's a little difference to the other 3 fs. and maybe it's a little old.
+
+Personaly, I'd like to try aufs. Unfortunatly, raspbian seems not work with aufs unless compile kernal manually. For a lazy person, of course I've gave up.
+
+
+## My Solution
+ - make the sdcard to 4 partitition
+    - sda1 is boot partition, vfat
+    - sda2 is for /, ext4, but disable journal logs. ```mkfs.ext4 -O ^has_journal /dev/sda2```, this parititon is read only
+    - sda3 is for /var and app, data. ext4, but disable journal logs.
+    - sda4 is for future usage. ext4, but disable journal logs.
+ - fstab
+```
+proc                    /proc           proc    defaults                        0       0
+/dev/sda1               /boot           vfat    ro,defaults                     0       2
+/dev/sda2               /               ext4    ro,defaults                     0       1
+/dev/sda4               /backup         ext4    defaults,noatime,nodiratime     0       1
+
+tmpfs                   /tmp            tmpfs   mode=1777,nosuid,nodev          0       0
+tmpfs                   /root/.cache    tmpfs   mode=1777,nosuid,nodev          0       0
+tmpfs                   /cache          tmpfs   mode=1777,nosuid,nodev          0       0
+
+```
+ - run a systemd script before all the others partittion's mount, just after /
+```
+        mkdir -p /cache
+        mount -t tmpfs /cache
+
+        # mount disk partitiion3 to /writable
+        mount -t ext4 -o noatime,nodiratime /dev/mmcblk0p3 /writable/
+
+        # create overlay mount dir
+        mkdir -p /cache/var /cache/opt /cache/overlay/var /cache/overlay/opt
+        mkdir -p /writable/var /writable/opt
+
+        # mount /var
+        mount -t overlay overlay -o lowerdir=/writable/var:/var_bak,upperdir=/cache/var,workdir=/cache/overlay/var /var
+
+        # mount /opt
+        mount -t overlay overlay -o lowerdir=/writable/opt,upperdir=/cache/opt,workdir=/cache/overlay/opt /opt
+```
+ - register to the systemd service
+```
+[Unit]
+Description=Mount /var and /opt by overlay
+Requires=syslog.socket
+
+[Service]
+User=root
+WorkingDirectory=/etc/init.d
+ExecStart=/etc/init.d/tmpfs_overlay.sh
+Restart=always
+Before=basic.target
+
+[Install]
+WantedBy=multi-user.target
+Alias=tmpfs_overlay.service
+```
+
+For details, refer to the [system/raspiberry/etc](https://github.com/marcusyh/system/tree/master/raspiberry/etc)
+
 
