@@ -1,0 +1,14 @@
+[Unit]
+Description=Mount /var and /opt by overlay
+Requires=syslog.socket
+
+[Service]
+User=root
+WorkingDirectory=/etc/init.d
+ExecStart=/etc/init.d/tmpfs_overlay.sh
+Restart=always
+Before=basic.target
+
+[Install]
+WantedBy=multi-user.target
+Alias=tmpfs_overlay.service

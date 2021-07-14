@@ -1,0 +1,16 @@
+# UNCONFIGURED FSTAB FOR BASE SYSTEM
+proc            	/proc           proc    defaults          		0       0
+PARTUUID=5e5cfa9e-01 	/boot           vfat    ro,defaults          		0       2
+PARTUUID=5e5cfa9e-02 	/               ext4    ro,defaults		  	0       1
+PARTUUID=5e5cfa9e-04 	/backup         ext4    defaults,noatime,nodiratime  	0       1
+
+tmpfs 		     	/tmp		tmpfs 	mode=1777,nosuid,nodev		0	0
+tmpfs 		     	/root/.cache	tmpfs 	mode=1777,nosuid,nodev		0	0
+tmpfs 		     	/cache		tmpfs 	mode=1777,nosuid,nodev		0	0
+
+#PARTUUID=5e5cfa9e-03 	/writable	ext4    defaults,noatime,nodiratime  	0       1
+#overlay			/var		overlay	lowerdir=/writable/var:/var_bak,upperdir=/cache/var,workdir=/cache/overlay/var,x-systemd.requires-mounts-for=/,x-systemd.requires-mounts-for=/wriable,x-systemd.requires-mounts-for=/cache 0 	0
+#overlay			/opt		overlay	lowerdir=/writable/opt,upperdir=/cache/opt,workdir=/cache/overlay/opt,x-systemd.requires-mounts-for=/wriable,x-systemd.requires-mounts-for=/cache 0 	0
+
+# a swapfile is not a swap partition, no line here
+#   use  dphys-swapfile swap[on|off]  for that
