@@ -15,10 +15,14 @@ case "$1" in
 	mkdir -p /writable/var /writable/opt
 
 	# mount /var
+	mount -o remount,ro,defaults /dev/sda2 /
 	mount -t overlay overlay -o lowerdir=/writable/var:/var_bak,upperdir=/cache/var,workdir=/cache/overlay/var /var
 
 	# mount /opt
 	mount -t overlay overlay -o lowerdir=/writable/opt,upperdir=/cache/opt,workdir=/cache/overlay/opt /opt
+
+	systemctl daemon-reload
+	systemctl start systemd-timesyncd
 
 	exit $?
 	;;

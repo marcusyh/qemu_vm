@@ -6,6 +6,11 @@ CACHE_DIR=/cache/docker
 function update_config(){
     ROOT_DIR=$1
 
+    if [ $(systemctl is-active docker) = "active" ]
+    then
+        systemctl stop docker
+    fi
+
     # check is /etc/docker/daemon.json need to update
     same_flag=0
     if [ -f /etc/docker/daemon.json ]
@@ -38,6 +43,11 @@ EOT
 
 
 function get_image_base_layer(){
+    if [ $(systemctl is-active docker) != "active" ]
+    then
+        systemctl start docker
+    fi
+
     image_layers_id=""
     for image_id in $(docker images --format '{{.ID}}' |xargs)
     do
@@ -52,6 +62,11 @@ function get_image_base_layer(){
 
 
 function cleanup_container(){
+    if [ $(systemctl is-active docker) != "active" ]
+    then
+        systemctl start docker
+    fi
+
     for container_id in $(docker ps --format '{{.ID}}')
     do
 	docker stop $container_id
@@ -65,140 +80,121 @@ function cleanup_container(){
 }
 
 
+function deploy_cache_version(){
+    if [ $(systemctl is-active docker) = "active" ]
+    then
+        systemctl stop docker
+    fi
+
+    # make sure a clean cache dir is exists
+    mkdir -p $CACHE_DIR && rm -rf $CACHE_DIR/*
+
+    cleanup_container
+    
+    image_layers_id=$(cat $BASE_DIR/base_layers_list.txt)
+    
+    # copy all files except for the images layers
+    for layer_id in $(echo $image_layers_id)
+    do
+        PARAMS="$PARAMS --exclude=overlay2/$layer_id"
+    done
+    rsync -ar --delete $PARAMS $BASE_DIR/ $CACHE_DIR/
+    
+    
+    # link all the docker images layers to cache dir
+    for layer_id in $image_layers_id
+    do
+        ln -s $BASE_DIR/overlay2/$layer_id $CACHE_DIR/overlay2/$layer_id
+    done
+
+    # It's strange, we must to stop and start again to see the docker images.
+    # A sleep is also needed before start. 
+    # or, there will be a error: The unit docker.service has entered the 'failed' state with result 'start-limit-hit
+    # looks like the firewll or the fucking systemd was set a limit in somewhere.
+    systemctl start docker
+    sleep 3
+    systemctl stop docker
+    systemctl start docker
+}
+
+
+function check_baselayers_list(){
+    # get images' layers list
+    if [ ! -f $BASE_DIR/base_layers_list.txt ]
+    then
+	echo $BASE_DIR/base_layers_list.txt is not found.
+	exit 1
+    fi
+}
+
+
+function set_baselayers_list(){
+    mount -o remount,rw,noatime,nodiratime /dev/sda2 /
+
+    if [ $(systemctl is-active docker) != "active" ]
+    then
+        systemctl start docker
+    fi
+    new_base_layers=$(get_image_base_layer)
+    if [ -f $BASE_DIR/base_layers_list.txt ]
+    then
+        old_base_layers=$(cat $BASE_DIR/base_layers_list.txt |xargs)
+        if [ "$new_base_layers" = "$old_base_layers" ]
+        then
+	    return
+        fi
+    fi
+    echo $new_base_layers > $BASE_DIR/base_layers_list.txt
+
+    mount -o remount,ro /dev/sda2 /
+}
+
+
+
+
 case "$1" in
 
     start|"")
-        # get images' layers list
-	if [ ! -f $BASE_DIR/base_layers_list.txt ]
-	then
-	    echo $BASE_DIR/base_layers_list.txt is not found.
-	    exit 1
-	fi
-
-	# make sure docker service is not running
-        /etc/init.d/docker stop
-
+	check_baselayers_list
 	update_config $CACHE_DIR
-
-        # make sure a clean cache dir is exists
-        mkdir -p $CACHE_DIR && rm -rf $CACHE_DIR/*
-
-	cleanup_container
-        
-        image_layers_id=$(cat $BASE_DIR/base_layers_list.txt)
-        
-        # copy all files except for the images layers
-        for layer_id in $(echo $image_layers_id)
-        do
-            PARAMS="$PARAMS --exclude=overlay2/$layer_id"
-        done
-        rsync -ar --delete $PARAMS $BASE_DIR/ $CACHE_DIR/
-        
-        
-        # link all the docker images layers to cache dir
-        for layer_id in $image_layers_id
-        do
-            ln -s $BASE_DIR/overlay2/$layer_id $CACHE_DIR/overlay2/$layer_id
-        done
-        
-        # start docker service
-        /etc/init.d/docker start
-        /etc/init.d/docker stop
-        /etc/init.d/docker start
-
+	deploy_cache_version
 	exit $?
 	;;
 
     restart|"")
-        # get images' layers list
-	if [ ! -f $BASE_DIR/base_layers_list.txt ]
-	then
-	    echo $BASE_DIR/base_layers_list.txt is not found.
-	    exit 1
-	fi
-
-	# make sure docker service is not running
-        /etc/init.d/docker stop
-
-        # make sure a clean cache dir is exists
-        mkdir -p $CACHE_DIR && rm -rf $CACHE_DIR/*
-
-	cleanup_container
-        
-        image_layers_id=$(cat $BASE_DIR/base_layers_list.txt)
-        
-        # copy all files except for the images layers
-        for layer_id in $(echo $image_layers_id)
-        do
-            PARAMS="$PARAMS --exclude=overlay2/$layer_id"
-        done
-        rsync -ar --delete $PARAMS $BASE_DIR/ $CACHE_DIR/
-        
-        # link all the docker images layers to cache dir
-        for layer_id in $image_layers_id
-        do
-            ln -s $BASE_DIR/overlay2/$layer_id $CACHE_DIR/overlay2/$layer_id
-        done
-	
-        # start docker service
-        /etc/init.d/docker start
-        /etc/init.d/docker stop
-        /etc/init.d/docker start
-
+	check_baselayers_list
+	deploy_cache_version
 	exit $?
 	;;
 
-
-    reload|force-reload)
-	/etc/init.d/docker stop
+    reload)
 	update_config $BASE_DIR
-
-        mount -o remount,rw,noatime,nodiratime /dev/sda2 /
-	/etc/init.d/docker start
-
-	new_base_layers=$(get_image_base_layer)
-	if [ -f $BASE_DIR/base_layers_list.txt ]
-	then
-	    old_base_layers=$(cat $BASE_DIR/base_layers_list.txt |xargs)
-	    if [ "$new_base_layers" = "$old_base_layers" ]
-	    then
-		exit 0
-	    fi
-	fi
-
-	echo $new_base_layers > $BASE_DIR/base_layers_list.txt
-
-	/etc/init.d/docker stop
-
+	set_baselayers_list
 	update_config $CACHE_DIR
-	/etc/init.d/docker start
-        /etc/init.d/docker stop
-        /etc/init.d/docker start
-	exit 0
+	deploy_cache_version
+	exit $?
 	;;
 
     stop)
-	/etc/init.d/docker stop
-	
+    	if [ $(systemctl is-active docker) = "active" ]
+    	then
+    	    systemctl stop docker
+    	fi
 	rm -rf $CACHE_DIR/*
-
 	exit $?
 	;;
 
     restore)
-	/etc/init.d/docker stop
-	
 	update_config $BASE_DIR
-
 	rm -rf $CACHE_DIR/*
-
         mount -o remount,rw,noatime,nodiratime /dev/sda2 /
-	/etc/init.d/docker start
+	systemctl start docker
 
 	exit $?
 	;;
 
     *)
+	echo f
 	exit 3
 	;;
 
