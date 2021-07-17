@@ -20,7 +20,9 @@
  - tel kernel the initramfs' address, and hand the controller ship to  kernel
 
 
-## initramfs
+## Kernel mode
+
+### initramfs
 
  - [wikipedia: initial ramdisk](https://en.wikipedia.org/wiki/Initial_ramdisk) 
  - [quora: What-exactly-is-the-initramfs-program](https://www.quora.com/What-exactly-is-the-initramfs-program-in-Linux-Is-it-a-script-binary-or-what) 
@@ -30,7 +32,7 @@
 initramfs is a temporary / filesystem before the real / is mounted. initramfs can provide the kernel modules and other needed info and tool for kernel before it mount the real /
 
 
-## kernel init
+### kernel init
 
 [Kernel Initialization](http://glennastory.net/boot/linux.html)
 
@@ -43,7 +45,7 @@ The init task, also running as a kernel thread, does additional initialization.
 After the above is completed, the init thread executes the program init which is found in the root directory of the initrd file system. 
 ```
 
-## /init stage of kernel mode
+### /init stage
 
 There is a /init script in the initramfs, it's the first program the kernel is called. 
 
@@ -61,9 +63,98 @@ In general, the following things are accomplished by the init program running fr
 ```
 ![initramfs booting /init 03](https://github.com/marcusyh/system/blob/master/raspiberry/images/boot_process_03.png)
 
+At the last stage of /init script, the real root filesystem is mounted to /root:
+```
+export rootmnt=/root
+```
+```
+        if [ -z "${ROOT}" ]; then
+                panic "No root device specified. Boot arguments must include a root= parameter."
+        fi
+        local_device_setup "${ROOT}" "root file system"
+        ROOT="${DEV}"
 
+        # Get the root filesystem type if not set
+        if [ -z "${ROOTFSTYPE}" ] || [ "${ROOTFSTYPE}" = auto ]; then
+                FSTYPE=$(get_fstype "${ROOT}")
+        else
+                FSTYPE=${ROOTFSTYPE}
+        fi
 
-## /sbin/init and /etc/inittab stage
+        local_premount
+
+        if [ "${readonly?}" = "y" ]; then
+                roflag=-r
+        else
+                roflag=-w
+        fi
+
+        checkfs "${ROOT}" root "${FSTYPE}"
+
+        # Mount root
+        # shellcheck disable=SC2086
+        if ! mount ${roflag} ${FSTYPE:+-t "${FSTYPE}"} ${ROOTFLAGS} "${ROOT}" "${rootmnt?}"; then
+                panic "Failed to mount ${ROOT} as root file system."
+        fi
+```
+
+mount /usr if it's a seperate partitition
+```
+if read_fstab_entry /usr; then
+        log_begin_msg "Mounting /usr file system"
+        mountfs /usr
+        log_end_msg
+fi
+```
+
+move /proc, /dev, /run, /sys to the real root system
+```
+mount -n -o move /sys ${rootmnt}/sys
+mount -n -o move /proc ${rootmnt}/proc
+mount -n -o move /run ${rootmnt}/run
+mount -n -o move /dev ${rootmnt}/dev
+```
+
+check user space /sbin/init programme
+```
+validate_init() {
+        run-init -n "${rootmnt}" "${1}"
+}       
+                
+# Check init is really there
+if ! validate_init "$init"; then
+        echo "Target filesystem doesn't have requested ${init}."
+        init=
+        for inittest in /sbin/init /etc/init /bin/init /bin/sh; do
+                if validate_init "${inittest}"; then
+                        init="$inittest"
+                        break
+                fi
+        done    
+fi           
+```
+
+relase the pusodu root fs initramfs and switch to real root fs. Use /sbin/init program to replace this script.
+```
+exec run-init ${drop_caps} "${rootmnt}" "${init}" "$@" <"${rootmnt}/dev/console" >"${rootmnt}/dev/console" 2>&1
+```
+```
+./run-init --help
+BusyBox v*.**.* multi-call binary.
+
+Usage: run-init [-d CAP,CAP...] [-n] [-c CONSOLE_DEV] NEW_ROOT NEW_INIT [ARGS]
+
+Free initramfs and switch to another root fs:
+chroot to NEW_ROOT, delete all in /, move NEW_ROOT to /,
+execute NEW_INIT. PID must be 1. NEW_ROOT must be a mountpoint.
+
+        -c DEV  Reopen stdio to DEV after switch
+        -d CAPS Drop capabilities
+        -n      Dry run
+```
+
+## /sbin/init
+### /sbin/init and /etc/inittab stage
 
 ![initramfs booting /init 04](https://github.com/marcusyh/system/blob/master/raspiberry/images/boot_process_05.png)
 
