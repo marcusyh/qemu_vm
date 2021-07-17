@@ -153,8 +153,8 @@ execute NEW_INIT. PID must be 1. NEW_ROOT must be a mountpoint.
         -n      Dry run
 ```
 
-## /sbin/init
-### /sbin/init and /etc/inittab stage
+## /sbin/init stage
+### /sbin/init 
 
 ![initramfs booting /init 04](https://github.com/marcusyh/system/blob/master/raspiberry/images/boot_process_05.png)
 
@@ -164,6 +164,91 @@ All the other files, such as /etc/init.d/?.sh and /etc/rc?/?.sh are just some ad
 
 The manual page of init and inittab have gave a very clear description. `man init` and `man inittab`.
 
+```
+After init is invoked as the last step of the kernel boot sequence, it looks for the file /etc/inittab to see if there is an entry of the type initdefault.
+The initdefault entry determines the initial runlevel of the system.
+       
+If there is no such entry (or no /etc/inittab at all), a runlevel must be entered at the system console.
+Runlevel S or s initialize the system and do not require an /etc/inittab file.
+In single user mode, /sbin/sulogin is invoked on /dev/console.
+When entering single user mode, init initializes the consoles stty settings to sane values. Clocal mode is set. Hardware speed and handshaking are not changed.
+```
+
+### /etc/inittab
+
+inittab tells /sbin/init what to do. /sbin/init is the mechanism, /etc/inittab is the policy.
+```
+More of the Unix philosophy was implied not by what these elders said but by what they did and the example Unix itself set. Looking at the whole, we can abstract the following ideas:
+    ....
+    Rule of Separation: Separate policy from mechanism; separate interfaces from engines.
+    ....
+```
+
+each line of inittab is a ':' seperated 4 columns entry of the to be executed program.
+
+man inittab
+```
+       id     
+              is a unique sequence of 1-4 characters which identifies an entry in inittab (for versions of sysvinit compiled with the old libc5 (< 5.2.18) or a.out libraries the limit is 2 characters).
+
+       runlevels
+              lists the runlevels for which the specified action should be taken.
+
+       action 
+              describes which action should be taken.
+
+       process
+              specifies the process to be executed.  If the process field starts with a `+' character, init will not do utmp and wtmp accounting for that process.  This is needed for gettys that insist on doing their own utmp/wtmp housekeeping.  This is also a historic bug. The length of this field is limited to 127 characters.
+```
+
+For detail of runlevels column's meaning, it can be found in man init page:
+```
+RUNLEVELS
+       A  runlevel  is  a software configuration of the system which allows only a selected group of processes to exist.  The processes spawned by init for each of these runlevels are defined in the /etc/inittab file.  Init can be in one of eight runlevels: 0–6 and S (a.k.a. s).  The runlevel is changed by having a privileged user run telinit, which sends appropriate signals to init, telling it which runlevel to change to.
+
+       Runlevels S, 0, 1, and 6 are reserved.  Runlevel S is used to initialize the system on boot.  When starting runlevel S (on boot) or runlevel 1 (switching from a multi-user runlevel) the system is entering ``single-user mode'', after which the current runlevel is S.  Runlevel 0 is used to halt the system; runlevel 6 is used to reboot the system.
+
+       After booting through S the system automatically enters one of the multi-user runlevels 2 through 5, unless there was some problem that needs to be fixed by the administrator in single-user mode.  Normally after entering single-user mode the administrator performs maintenance and then reboots the system.
+
+       For more information, see the manpages for shutdown(8) and inittab(5).
+
+       Runlevels 7-9 are also valid, though not really documented. This is because "traditional" Unix variants don't use them.
+
+       Runlevels S and s are the same.  Internally they are aliases for the same runlevel.
+```
+
+There are lots of actions can be defined in the action column, the description of each action's meaning can be found in the initab's manual. The actions lists are:
+```
+       respawn
+       wait
+       once
+       boot
+       bootwait
+       off 
+       ondemand
+       initdefault
+       sysinit
+       powerwait
+       powerfail
+       powerokwait
+       powerfailnow
+       ctrlaltdel
+       kbrequest
+```
+
+ - We use `initdefault` to tell /sbin/init which run level it should choose.
+
+ - The rows with action `sysinit` will be run before any other rows. So, we use this action keyword to let the /sbin/init known which script we want it treat as the main script.
+
+ - After rows with `sysinit` action finished, rows with `boot` and `bootwait` will be executed to do some common operation like mount file systems. 
+
+ - Entries with`sysinit`, `boot` and `bootwait` actions will ignore the run level. There common operation for all the run levels.
+
+ - All the other entries will be executed if the run level is matched.
+
+ - When starting a new process, init first checks whether the file /etc/initscript exists. If it does, it uses this script to start the process.
+ 
+ - Each time a child terminates, init records the fact and the reason it died in /var/run/utmp and /var/log/wtmp, provided that these files exist.
 
 
 ### Just execute some dynamic addons of /sbin/init
