@@ -253,6 +253,9 @@ There are lots of actions can be defined in the action column, the description o
 
 ### Just execute some dynamic addons of /sbin/init
 
+
+***The real main script***
+
 For devuan arm64, the /etc/inittab tells the /etc/first to execute /etc/init.d/rcS. /etc/init.d/rcS is a symbolink to /lib/init.d/rcS. /lib/init/rcS infact has just one line code `/etc/init.d/rc S`, 
 
  - ls -l /etc/init.d/rcS
@@ -270,6 +273,114 @@ exec /etc/init.d/rc S
 
 /lib/init/rc is the main script to exec all the user space initlization, including execute all the /etc/init.d/rc?.d scripts for example.
 
+
+***The tasks of /lib/init/rc***
+
+ - Load common functions:
+```
+       . /etc/default/rcS         # rcS's user configured variable
+       
+       . /lib/lsb/init-functions  # comman functions. 
+                                  # init-functions call all the sub functions located at /lib/lsb/init-functions.d
+                                  # init-functions call /etc/lsb-base-logging.sh if it exists.
+```
+
+ - set $CONCURRENCY variable
+```
+CONCURRENCY=makefile
+test -s /etc/init.d/.depend.boot  || CONCURRENCY="none"
+test -s /etc/init.d/.depend.start || CONCURRENCY="none"
+test -s /etc/init.d/.depend.stop  || CONCURRENCY="none"
+test -e /etc/init.d/.legacy-bootordering && CONCURRENCY="none"
+grep -wqs concurrency=none /proc/cmdline && CONCURRENCY="none"
+test -x /lib/startpar/startpar || CONCURRENCY="none"
+```
+
+ - remount /proc if `/proc/stat` is not exists.
+
+ - set $ACTION:
+```
+        case "$runlevel" in
+                0|6)
+                        ACTION=stop
+                        ;;
+                S)
+                        ACTION=start
+                        ;;
+                *)
+                        ACTION=start
+                        ;;
+        esac
+```
+ - Choose all the scripts in /etc/init.d/rc?.d/*
+
+ - Run the init scripts sequencially if `$CONCURRENCY` == "none", else, run them parallel.
+
+ - All finished.
+ 
+ - We can see that the `/lib/init/rc` is a framework script, it check the environment, call the common lib functions, set the variables, and then call the scripts at `/etc/rc?.d` which do the real work. The scripts inside `/etc/rc?.d` are addons of this `/lib/init/rc` script. The `/lib/init/rc` is done nothing about the real work to initilization.
+
+
+***other common scripts***
+
+```
+/lib
+  ├── apparmor
+  │   ├── apparmor.systemd
+  │   ├── profile-load
+  │   └── rc.apparmor.functions
+  ├── console-setup
+  │   ├── console-setup.sh  # called by /etc/init.d/console-setup.sh
+  │   └── keyboard-setup.sh # called by /etc/init.d/keyboard-setup.sh
+  ├── ifupdown
+  │   ├── settle-dad.sh
+  │   ├── wait-for-ll6.sh
+  │   └── wait-online.sh
+  ├── init
+  │   ├── bootclean.sh   # called by checkroot-bootclean.sh, mountall-bootclean.sh, mountnfs-bootclean.sh in /etc/init.d/
+  │   ├── init-d-script  # called by /etc/init.d/procps
+  │   ├── mount-functions.sh # called by mountkernfs.sh, checkroot.sh, mountnfs.sh, checkfs.sh, mountall.sh, mountdevsubfs.sh in /etc/init.d
+  │   ├── rc
+  │   ├── rcS
+  │   ├── tmpfs.sh  # called by mountkernfs.sh, mountall.sh, mountdevsubfs.sh in /etc/init.d/
+  │   └── vars.sh  # called by lots of scripts in /etc/init.d/
+  ├── lsb
+  │   ├── init-functions     # read by /lib/init/rc, and called by the /etc/init.d/* scripts.
+  │   └── init-functions.d   # read by /lib/init/rc, and called by the /etc/init.d/* scripts.
+  │       └── 20-left-info-blocks
+  ├── startpar
+  │   └── startpar  # a binary program run the init scripts in parellel style.
+```
+
+The above scripts are symbolinked to the following location:
+```
+/etc/rcS.d/S01mountkernfs.sh
+/etc/rcS.d/S03keyboard-setup.sh
+/etc/rcS.d/S04mountdevsubfs.sh
+/etc/rcS.d/S07checkroot.sh
+/etc/rcS.d/S08checkfs.sh
+/etc/rcS.d/S09checkroot-bootclean.sh
+/etc/rcS.d/S10mountall.sh
+/etc/rcS.d/S11mountall-bootclean.sh
+/etc/rcS.d/S12procps
+/etc/rcS.d/S16mountnfs.sh
+/etc/rcS.d/S17mountnfs-bootclean.sh
+
+/etc/rc2.d/S01console-setup.sh
+/etc/rc3.d/S01console-setup.sh
+/etc/rc4.d/S01console-setup.sh
+/etc/rc5.d/S01console-setup.sh
+
+/etc/rc0.d/K04umountnfs.sh
+/etc/rc6.d/K04umountnfs.sh
+```
+
+### review the init sequnce 
+
+It's defined in the /etc/inittab:
+ - choose runlevel by entry `initdefault`
+ - run all scripts in /etc/rcS.d by entry `sysinit`
+ - run the specified level scripts by one of entry `wait`
 
 
 ### dynamic addons of addons
