@@ -382,6 +382,8 @@ It's defined in the /etc/inittab:
  - run all scripts in /etc/rcS.d by entry `sysinit`
  - run the specified level scripts by one of entry `wait`
 
+Sysv init is much much better than systemd, we can put our customized code to any location or any stage of the init progress.
+
 
 ### dynamic addons of addons
 
