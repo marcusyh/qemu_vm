@@ -385,7 +385,8 @@ It's defined in the /etc/inittab:
 Sysv init is much much better than systemd, we can put our customized code to any location or any stage of the init progress.
 
 
-### dynamic addons of addons
+
+## dynamic addons of addons
 
 /lib/init/rc is an addon of /sbin/init and /etc/inittab
 
