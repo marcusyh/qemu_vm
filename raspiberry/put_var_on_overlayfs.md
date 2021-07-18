@@ -69,7 +69,7 @@ update-rc.d cache_docker.sh remove
 
 ### put docker to tmpfs by overlayfs
 
-[code](https://github.com/marcusyh/system/blob/master/raspiberry/etc/init.d/tmpfs_overlay.sh)
+[code](https://github.com/marcusyh/system/blob/master/raspiberry/etc/init.d/cache_docker.sh)
 
 docer will report an error when put /var/lib/docker to a overlay dir, so, copy and symbolink is used.
 
