@@ -181,7 +181,7 @@ function check_baselayers_list(){
 }
 
 function analysis_image_baselayers(){
-    docker_is_live || operate_docker start
+    docker_is_live || operate_docker start > /dev/null 2>&1
 
     image_layers_id=""
     for image_id in $(docker images --format '{{.ID}}' |xargs)

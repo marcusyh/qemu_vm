@@ -52,13 +52,13 @@ The header of this script
 
 Some other /etc/init.d/ scripts's header need to update:
 ```
-grep -r var /etc/init.d/ |grep Required
 /etc/init.d/keyboard-setup.sh:# Required-Start:    mountkernfs var
 /etc/init.d/mountdevsubfs.sh:# Required-Start:    mountkernfs var
 /etc/init.d/procps:# Required-Start:    mountkernfs var $local_fs
 /etc/init.d/bootlogd:# Required-Start:    mountdevsubfs var
 /etc/init.d/rsyslog:# Required-Stop:     umountnfs $time var
 /etc/init.d/networking:# Required-Start:    mountkernfs $local_fs urandom var
+/etc/init.d/rpcbind:# Required-Stop:     $network $local_fs var
 ```
 
 add to or remove from the system's sysv init:
