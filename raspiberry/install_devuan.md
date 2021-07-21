@@ -44,6 +44,7 @@ reboot the system.
 
 ### configure it as a Router
 
+
 just follow [this guide](https://gridscale.io/en/community/tutorials/debian-router-gateway/) 
 
 install arno-iptables-firwall, and follow the guide to config it.
@@ -62,3 +63,11 @@ change /etc/apt/sources.list.d/docker.list to following and try again.
 ```
 deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian  buster stable
 ```
+
+### ddcutil
+
+ - [ddcutil config and debug](https://www.ddcutil.com/config/)
+ - [ddcutil on raspberrypi](https://www.ddcutil.com/raspberry/)
+ - [build linux kernel for raspberrypi](https://www.raspberrypi.org/documentation/linux/kernel/building.md) 
+ - [Compiling Loadable Kernel Module](https://www.raspberrypi.org/forums/viewtopic.php?t=265682)
+ - [to solve git clone always fails with “Failed sending HTTP request”](https://stackoverflow.com/questions/65556397/git-clone-always-fails-with-failed-sending-http-request) by command `apt reinstall libcurl3-gnutls/stable`
