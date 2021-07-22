@@ -21,8 +21,8 @@ It's for personal usage, so, i need it as simple as possible:
 
 
 #### Web UI
-- [kimchi](https://github.com/kimchi-project/kimchi): Web based, works as a plugin as work, pure python.
-- [WebVirtMgr](http://retspen.github.io/): libvirt-based Web interface for managing virtual machines. django based.
+- [kimchi](https://github.com/kimchi-project/kimchi): Web based, works as a plugin as work, pure pythonic, cherry framework based.
+- [WebVirtMgr](http://retspen.github.io/): libvirt-based Web interface for managing virtual machines. django framework based.
 - [phpvirtualbox](https://wiki.archlinux.org/title/PhpVirtualBox): phpVirtualBox is an open source, AJAX implementation of the VirtualBox user interface written in PHP. As a modern web interface, it allows you to access and control remote VirtualBox instances. Much of its verbage and some of its code is based on the (inactive) vboxweb project. phpVirtualBox was designed to allow users to administer VirtualBox in a headless environment - mirroring the VirtualBox GUI through its web interface. 
 
 
@@ -37,3 +37,7 @@ It's for personal usage, so, i need it as simple as possible:
 
 ## kimchi vs WebVirtMgr
  - [link1](https://www.linuxquestions.org/questions/linux-virtualization-and-cloud-90/web-kvm-management-4175509506/) WebVirtMgr is a libvirt-based Web interface to manage kvm virtual machines and support almost all basic vm lifecycle tasks, If need more feature-rich alternative, look for Kimchi Project.
+
+
+## dockerlized
+ - [kimchi](https://github.com/kimchi-project/kimchi/issues/1108) [kimchi dockerfile 1](https://hub.docker.com/r/mbentley/kimchi/dockerfile/)
