@@ -41,3 +41,6 @@ It's for personal usage, so, i need it as simple as possible:
 
 ## dockerlized
  - [kimchi](https://github.com/kimchi-project/kimchi/issues/1108) [kimchi dockerfile 1](https://hub.docker.com/r/mbentley/kimchi/dockerfile/)
+
+## My choice
+I prefer webVirtMgr if installing on the host directly. But dockerlized kimchi seems a better idea. Clean, feature rich, pythonic. Excellent.
