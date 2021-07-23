@@ -66,15 +66,30 @@ deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https:
 
 ### ddcutil
 
-Config flowwing file will make ddcutil works:
- - /boot/config.txt
+##### /boot/config.txt
 ```
 dtparam=i2c_vc_on
 dtoverlay=vc4-kms-v3d
 ```
+or 
+```
+dtparam=i2c_vc_on
+dtoverlay=vc4-kms-v3d-pi4
+```
+do not use ```vc4-fkms-v3d```
+
+- There are 3 kms mode, described by [this link](https://www.raspberrypi.org/forums/viewtopic.php?t=260994):
+    - "legacy" mode, the legacy 3D driver which runs on the VPU and avoids all the usual linux mechanisms, videocore firmware manages everything.
+    - "full kms" mode, v3d is the videocore 3D driver for the standard mesa/linux 3D stack that runs on the CPU, the kernel manages everything.
+    - "fake kms mode", kernel selects the screen mode(s) for the screen(s) but the videocore firmware manages the video output path.
+
+- For detail of the description of etch config.txt item, refer these links: 
+    - [raspberrypi firmware boot overlays](https://raw.githubusercontent.com/raspberrypi/firmware/master/boot/overlays/README)
+    - [config.txt manual](https://www.raspberrypi.org/documentation/configuration/config-txt/) 
+    - [Device Trees, overlays, and parameters](https://www.raspberrypi.org/documentation/configuration/device-tree.md)
+
 
  - /etc/
-
 
 
  - [ddcutil config and debug](https://www.ddcutil.com/config/)
