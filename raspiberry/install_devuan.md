@@ -68,12 +68,12 @@ deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https:
 
 ##### /boot/config.txt
 ```
-dtparam=i2c_vc_on
+dtparam=i2c_vc=on
 dtoverlay=vc4-kms-v3d
 ```
 or 
 ```
-dtparam=i2c_vc_on
+dtparam=i2c_vc=on
 dtoverlay=vc4-kms-v3d-pi4
 ```
 do not use ```vc4-fkms-v3d```
@@ -89,7 +89,19 @@ do not use ```vc4-fkms-v3d```
     - [Device Trees, overlays, and parameters](https://www.raspberrypi.org/documentation/configuration/device-tree.md)
 
 
- - /etc/
+##### /etc/modules
+
+add follow line
+```
+i2c-dev
+```
+
+##### /etc/udev/rules.d/99-i2c.rules
+
+```
+SUBSYSTEM=="i2c-dev", MODE="0666"
+```
+
 
 
  - [ddcutil config and debug](https://www.ddcutil.com/config/)
@@ -97,3 +109,4 @@ do not use ```vc4-fkms-v3d```
  - [build linux kernel for raspberrypi](https://www.raspberrypi.org/documentation/linux/kernel/building.md) 
  - [Compiling Loadable Kernel Module](https://www.raspberrypi.org/forums/viewtopic.php?t=265682)
  - [to solve git clone always fails with “Failed sending HTTP request”](https://stackoverflow.com/questions/65556397/git-clone-always-fails-with-failed-sending-http-request) by command `apt reinstall libcurl3-gnutls/stable`
+ - https://github.com/fivdi/i2c-bus/blob/master/doc/raspberry-pi-i2c.md
