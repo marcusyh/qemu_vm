@@ -66,6 +66,17 @@ deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https:
 
 ### ddcutil
 
+Config flowwing file will make ddcutil works:
+ - /boot/config.txt
+```
+dtparam=i2c_vc_on
+dtoverlay=vc4-kms-v3d
+```
+
+ - /etc/
+
+
+
  - [ddcutil config and debug](https://www.ddcutil.com/config/)
  - [ddcutil on raspberrypi](https://www.ddcutil.com/raspberry/)
  - [build linux kernel for raspberrypi](https://www.raspberrypi.org/documentation/linux/kernel/building.md) 
