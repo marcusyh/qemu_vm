@@ -44,6 +44,7 @@ reboot the system.
 
 ### configure it as a Router
 
+
 just follow [this guide](https://gridscale.io/en/community/tutorials/debian-router-gateway/) 
 
 install arno-iptables-firwall, and follow the guide to config it.
