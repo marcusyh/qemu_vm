@@ -10,6 +10,7 @@ rootfs_is_rw(){
 
 ROOTFS_MNT_RW=$(rootfs_is_rw)
 ROOTFS_PARTITION=$(awk '{if($2 == "/") {print $1}}' /proc/mounts)
+BOOTFS_PARTITION=$(awk '{if($2 == "/boot") {print $1}}' /proc/mounts)
 
 remount_rootfs_rw(){
     MNT_TYPE=$1
@@ -31,7 +32,7 @@ restore_rootfs_mount_type(){
     fi
 }
 
-set_inittab_roofs_rw(){
+set_fstab_rootfs_rw(){
     # ro, rw
     MODE=$1
 
@@ -40,6 +41,18 @@ set_inittab_roofs_rw(){
         sed -i '/PARTUUID=5e5cfa9e-02/ s/defaults,noatime,nodiratime/ro,defaults/' /etc/fstab
     else
         sed -i '/PARTUUID=5e5cfa9e-02/ s/ro,defaults/defaults,noatime,nodiratime/' /etc/fstab
+    fi
+}
+
+set_fstab_bootfs_rw(){
+    # ro, rw
+    MODE=$1
+
+    if [ "$MODE" = 1 ]
+    then
+        sed -i '/PARTUUID=5e5cfa9e-01/ s/defaults,noatime,nodiratime/ro,defaults/' /etc/fstab
+    else
+        sed -i '/PARTUUID=5e5cfa9e-01/ s/ro,defaults/defaults,noatime,nodiratime/' /etc/fstab
     fi
 }
 
