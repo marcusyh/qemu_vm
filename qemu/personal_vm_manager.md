@@ -44,3 +44,5 @@ It's for personal usage, so, i need it as simple as possible:
 
 ## My choice
 I prefer webVirtMgr if installing on the host directly. But dockerlized kimchi seems a better idea. Clean, feature rich, pythonic. Excellent.
+
+Maybe virt-manager is much easier to deploy for my situation.
