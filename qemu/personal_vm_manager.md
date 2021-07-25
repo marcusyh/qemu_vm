@@ -1,4 +1,4 @@
-To choose a web based vm management software. I use kvm and qemu. There is a list on [kvm's office list](http://www.linux-kvm.org/page/Management_Tools).
+To choose a web based vm management software. I use kvm and qemu. There is a list on [kvm's official list](http://www.linux-kvm.org/page/Management_Tools).
 
 ## Software List
 
