@@ -35,14 +35,31 @@ It's for personal usage, so, i need it as simple as possible:
 - [ovirt](https://ovirt.org/): headless vm server by kvm and libvirt.
 
 
-## kimchi vs WebVirtMgr
+## docker version of kimchi
+
+#### kimchi vs WebVirtMgr
  - [link1](https://www.linuxquestions.org/questions/linux-virtualization-and-cloud-90/web-kvm-management-4175509506/) WebVirtMgr is a libvirt-based Web interface to manage kvm virtual machines and support almost all basic vm lifecycle tasks, If need more feature-rich alternative, look for Kimchi Project.
 
-
-## dockerlized
+#### dockerlized
  - [kimchi](https://github.com/kimchi-project/kimchi/issues/1108) [kimchi dockerfile 1](https://hub.docker.com/r/mbentley/kimchi/dockerfile/)
 
-## My choice
+#### My choice
 I prefer webVirtMgr if installing on the host directly. But dockerlized kimchi seems a better idea. Clean, feature rich, pythonic. Excellent.
 
-Maybe virt-manager is much easier to deploy for my situation.
+Maybe virt-manager is much easier to deploy for my situation. But, the customer, my wife want a webpage version. I hate libvirt, so, the dockered kimchi is the only choice.
+
+
+## docker it
+
+#### refer link
+- [How to launch qemu-kvm from inside a Docker container?](https://stackoverflow.com/questions/48422001/how-to-launch-qemu-kvm-from-inside-a-docker-container)
+- [Privileged Docker containers—do you really need them?](https://snyk.io/blog/privileged-docker-containers/)
+
+so, use `--device=/dev/kvm` rather than `--privileged`
+
+#### existing docker file
+- [tylerszabo's solution](https://github.com/kimchi-project/kimchi/issues/1108)
+- [ptylenda's solution](https://github.com/ptylenda/kimchi-docker/blob/master/Dockerfile)
+- [mbentley's solution](https://github.com/mbentley/docker-kimchi/blob/master/Dockerfile)
+- [Using Docker Machine with KVM and Libvirt](https://blog.scottlowe.org/2017/11/24/using-docker-machine-kvm-libvirt/)
+
