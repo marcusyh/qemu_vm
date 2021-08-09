@@ -63,3 +63,24 @@ change /etc/apt/sources.list.d/docker.list to following and try again.
 ```
 deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian  buster stable
 ```
+
+
+### a strange ntpd issue
+
+ntpd not sync time. but it was caused by network configure. I've met the same issue as [this link](https://www.linuxquestions.org/questions/linux-server-73/ntp-server-not-syncing-4175692331/), and also solved by JJX's solution.
+```
+auto eth0
+iface eth0 inet static
+address 192.168.1.10
+netmask 255.255.255.0
+network 192.168.1.0
+broadcast 192.168.1.255
+gateway 192.168.1.1
+
+#allow-hotplug wlan0
+#iface wlan0 inet manual
+wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+```
+
+For an unkown reason that command was not makred with # and was affecting eth0 interface.
+After removing this line, everything was functiong as expected
