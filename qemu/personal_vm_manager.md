@@ -29,6 +29,7 @@ It's for personal usage, so, i need it as simple as possible:
 #### Other
 - [Kubvirt](https://kubevirt.io/): Virtualization API for Kubernetes 
 - [cloonix](http://clownix.net/doc_stored/build-16-00/html/index.html): Focus on network simulation
+- [cockpit-machines](https://github.com/cockpit-project): Cockpit is a system manage web ui with a vm plugin can be used to manage virtual machine. but it only support systemd. [ maintaining compatability with sysvinit for Debian #9208 ](https://github.com/cockpit-project/cockpit/issues/9208)
 
 
 #### server
